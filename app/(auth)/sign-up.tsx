@@ -6,7 +6,6 @@ import { authStyles } from "@/assets/styles/auth.styles";
 import { Image } from "expo-image";
 import { COLORS } from "@/constants/colors";
 import { Ionicons } from "@expo/vector-icons";
-import VerifyEmail from "./verify-email";
 
 export default function SignUp() {
   const router = useRouter();
@@ -16,7 +15,6 @@ export default function SignUp() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [pendingVerification, setPendingVerification] = useState(false);
 
   const handleSignUp = async () => {
     if (!email || !password) {
@@ -42,19 +40,7 @@ export default function SignUp() {
         return Alert.alert("Error", "Sign-up failed. Please try again.");
       }
 
-      // send verification code to user email
-      const sendEmailAttempt = await authClient.emailOtp.sendVerificationOtp({
-        email,
-        type: "email-verification",
-      });
-
-      console.log("sending verification code to", signUpAttempt.data.user.email);
-      if (sendEmailAttempt.error) {
-        console.error(JSON.stringify(signUpAttempt, null, 2));
-        return Alert.alert("Error", "Failed to send verification email. Please try again.");
-      }
-
-      setPendingVerification(true)
+      router.push(`/verify-email/${signUpAttempt.data.user.email}`)
 
     } catch (error) {
       console.error("Error", error);
@@ -63,9 +49,6 @@ export default function SignUp() {
       setLoading(false);
     }
   };
-
-  if (pendingVerification)
-    return <VerifyEmail email={email} onBack={() => setPendingVerification(false)} />;
 
   return (
     <View style={authStyles.container}>

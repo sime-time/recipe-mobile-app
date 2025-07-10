@@ -1,20 +1,35 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { View, Text, Alert, TouchableOpacity, KeyboardAvoidingView, ScrollView, Platform, TextInput } from "react-native";
 import { authClient } from "@/lib/auth-client";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { authStyles } from "@/assets/styles/auth.styles";
 import { Image } from "expo-image";
 import { COLORS } from "@/constants/colors";
 
-interface VerifyEmailProps {
-  email: string;
-  onBack: () => void;
-}
-
-export default function VerifyEmail(props: VerifyEmailProps) {
+export default function VerifyEmail() {
+  const { email } = useLocalSearchParams();
   const router = useRouter();
+
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const sendVerificationEmail = async () => {
+      // send verification code to user email
+      const sendEmailAttempt = await authClient.emailOtp.sendVerificationOtp({
+        email: email as string,
+        type: "email-verification",
+      });
+
+      console.log("sending verification code to", email);
+      if (sendEmailAttempt.error) {
+        console.error(JSON.stringify(sendEmailAttempt, null, 2));
+        return Alert.alert("Error", "Failed to send verification email. Please try again.");
+      }
+    };
+    sendVerificationEmail();
+  }, [email]);
 
   const handleVerification = async () => {
     setLoading(true);
@@ -22,7 +37,7 @@ export default function VerifyEmail(props: VerifyEmailProps) {
     try {
       // use the code input to attempt verification
       const verifyEmailAttempt = await authClient.emailOtp.verifyEmail({
-        email: props.email,
+        email: email as string,
         otp: code,
       });
 
@@ -39,7 +54,25 @@ export default function VerifyEmail(props: VerifyEmailProps) {
     } finally {
       setLoading(false)
     }
-  }
+  };
+
+  const handleResendEmail = async () => {
+    // this is a duplicate of the email sending logic, but it's okay because
+    // it's explicitly for the resend button.
+    const resendEmailAttempt = await authClient.emailOtp.sendVerificationOtp({
+      email: email as string,
+      type: "email-verification",
+    });
+
+    console.log("resending verification code to", email);
+    if (resendEmailAttempt.error) {
+      console.error(JSON.stringify(resendEmailAttempt, null, 2));
+      return Alert.alert("Error", "Failed to resend verification email. Please try again.");
+    } else {
+      Alert.alert("Verification", `Sent code to ${email}`);
+    }
+  };
+
   return (
     <View style={authStyles.container}>
       <KeyboardAvoidingView
@@ -61,7 +94,7 @@ export default function VerifyEmail(props: VerifyEmailProps) {
           </View>
 
           <Text style={authStyles.title}>Verify Your Email</Text>
-          <Text style={authStyles.subtitle}>We&apos;ve sent a verification code to {props.email}</Text>
+          <Text style={authStyles.subtitle}>We&apos;ve sent a verification code to {email}</Text>
 
           <View style={authStyles.formContainer}>
             {/* VERIFICATION CODE INPUT */}
@@ -87,13 +120,13 @@ export default function VerifyEmail(props: VerifyEmailProps) {
               <Text style={authStyles.buttonText}>{loading ? "Verifying..." : "Verify Email"}</Text>
             </TouchableOpacity>
 
-            {/* SIGN IN LINK */}
+            {/* RESEND EMAIL */}
             <TouchableOpacity
               style={authStyles.linkContainer}
-              onPress={props.onBack}
+              onPress={handleResendEmail}
             >
               <Text style={authStyles.linkText}>
-                <Text style={authStyles.link}>Back to Sign up</Text>
+                Didn&apos;t get an email? <Text style={authStyles.link}>Resend code to email</Text>
               </Text>
             </TouchableOpacity>
 

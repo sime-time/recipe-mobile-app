@@ -36,7 +36,14 @@ export default function SignIn() {
       }
       console.log("signed in", signInAttempt.data.user);
 
-      router.push("/")
+      // if email is still not verified, send verification email again
+      if (signInAttempt.data.user.emailVerified) {
+        router.push("/")
+      } else {
+        router.push(`/verify-email/${signInAttempt.data.user.email}`)
+      }
+
+
 
     } catch (error) {
       console.error("Error", error)
