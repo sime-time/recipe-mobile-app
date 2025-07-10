@@ -30,9 +30,8 @@ export default function SignIn() {
       });
 
       if (signInAttempt.error) {
-        Alert.alert("Error", "Sign-in failed. Please try again.");
         console.error(JSON.stringify(signInAttempt, null, 2));
-        return;
+        return Alert.alert("Sign-in Failed", signInAttempt.error.message)
       }
       console.log("signed in", signInAttempt.data.user);
 
@@ -43,10 +42,8 @@ export default function SignIn() {
         router.push(`/verify-email/${signInAttempt.data.user.email}`)
       }
 
-
-
     } catch (error) {
-      console.error("Error", error)
+      console.error("Error", error);
 
     } finally {
       setLoading(false);

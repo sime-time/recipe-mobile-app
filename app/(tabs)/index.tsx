@@ -1,58 +1,217 @@
+import { useEffect, useState } from "react";
+import { useRouter } from "expo-router";
+import { ScrollView, TouchableOpacity, View, Text, FlatList, RefreshControl } from "react-native";
+import { MealAPI } from "@/services/mealAPI";
+import { homeStyles } from "@/assets/styles/home.styles";
 import { Image } from "expo-image";
-import { Link } from "expo-router";
-import { StyleSheet, Text, TextInput, View } from "react-native";
-import SignOutButton from "@/components/sign-out";
+import { Ionicons } from "@expo/vector-icons";
+import { COLORS } from "@/constants/colors";
+import CategoryFilter from "@/components/category-filter";
+import RecipeCard from "@/components/recipe-card";
 
 export default function Index() {
+  const router = useRouter();
+  const [recipes, setRecipes] = useState<any[]>([]);
+  const [categories, setCategories] = useState([])
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [featuredRecipe, setFeaturedRecipe] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  // This function will be responsible for fetching the core data of the screen.
+  const loadCoreData = async () => {
+    setLoading(true);
+    try {
+      const [apiCategories, featuredMeal] = await Promise.all([
+        MealAPI.getCategories(),
+        MealAPI.getRandomMeal(),
+      ]);
+
+      const transformedCategories = apiCategories.map((cat: any, index: number) => ({
+        id: index + 1,
+        name: cat.strCategory,
+        image: cat.strCategoryThumb,
+        description: cat.strCategoryDescription,
+      }));
+
+      setCategories(transformedCategories);
+      setFeaturedRecipe(MealAPI.transformMealData(featuredMeal));
+
+      // If no category is selected, default to the first one.
+      // This will trigger the useEffect below to load the recipes.
+      if (!selectedCategory && transformedCategories.length > 0) {
+        setSelectedCategory(transformedCategories[0].name);
+      }
+    } catch (error) {
+      console.log("Error loading core data", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    // On refresh, we want to get a new featured meal and reload the current category recipes.
+    try {
+      await Promise.all([
+        MealAPI.getRandomMeal().then(meal => setFeaturedRecipe(MealAPI.transformMealData(meal))),
+        selectedCategory ? loadCategoryData(selectedCategory) : Promise.resolve(),
+      ]);
+    } catch (error) {
+      console.log("Error refreshing data", error);
+    }
+    setRefreshing(false);
+  };
+
+  const loadCategoryData = async (category: string) => {
+    // Set recipes to empty to show the empty state component while loading
+    setRecipes([]);
+    try {
+      const meals = await MealAPI.filterByCategory(category);
+      const transformedMeals = meals
+        .map((meal: any) => MealAPI.transformMealData(meal))
+        .filter((meal: any) => meal !== null);
+      setRecipes(transformedMeals);
+    } catch (error) {
+      console.error("Error loading category data:", error);
+      setRecipes([]); // Ensure recipes is empty on error
+    }
+  };
+
+  const handleCategorySelect = (category: string) => {
+    setSelectedCategory(category);
+  };
+
+  // Effect for the initial data load
+  useEffect(() => {
+    loadCoreData();
+  }, []);
+
+  // Effect to load recipes when the selected category changes
+  useEffect(() => {
+    if (selectedCategory) {
+      loadCategoryData(selectedCategory);
+    }
+  }, [selectedCategory]);
+
   return (
-    <View
-      style={styles.container}
-    >
-      <Text style={styles.text}>Audentes Fortuna Iuvat</Text>
-      <Image source={{ uri: "https://videos.openai.com/vg-assets/assets%2Ftask_01jzeaxm3pekkb1j0ddajhh2fg%2F1751754179_img_1.webp?st=2025-07-07T18%3A22%3A11Z&se=2025-07-13T19%3A22%3A11Z&sks=b&skt=2025-07-07T18%3A22%3A11Z&ske=2025-07-13T19%3A22%3A11Z&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skoid=3d249c53-07fa-4ba4-9b65-0bf8eb4ea46a&skv=2019-02-02&sv=2018-11-09&sr=b&sp=r&spr=https%2Chttp&sig=k9IpNRtKcOxFCYXwJtlWK26kdctl5PatVyx8yua3Fm4%3D&az=oaivgprodscus" }} style={styles.image} />
+    <View style={homeStyles.container}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={COLORS.primary}
+          />
+        }
+        contentContainerStyle={homeStyles.scrollContent}
+      >
+        {/* ANIMAL ICONS */}
+        <View style={homeStyles.animalSection}>
+          <Image
+            source={require("@/assets/images/lamb.png")}
+            style={{
+              width: 100,
+              height: 100,
+            }}
+          />
+          <Image
+            source={require("@/assets/images/chicken.png")}
+            style={{
+              width: 100,
+              height: 100,
+            }}
+          />
+          <Image
+            source={require("@/assets/images/pork.png")}
+            style={{
+              width: 100,
+              height: 100,
+            }}
+          />
+        </View>
 
-      <TextInput placeholder="your name" style={styles.input} />
+        {/* FEATURED SECTION */}
+        {featuredRecipe && (
+          <View style={homeStyles.featuredSection}>
+            <TouchableOpacity
+              style={homeStyles.featuredCard}
+              activeOpacity={0.9}
+              onPress={() => router.push(`/recipe/${featuredRecipe.id}`)}
+            >
+              <View style={homeStyles.featuredImageContainer}>
+                <Image
+                  source={{ uri: featuredRecipe.image }}
+                  style={homeStyles.featuredImage}
+                  contentFit="cover"
+                  transition={500}
+                />
+                <View style={homeStyles.featuredOverlay}>
+                  <View style={homeStyles.featuredBadge}>
+                    <Text style={homeStyles.featuredBadgeText}>Featured</Text>
+                  </View>
 
-      <Link href={"/sign-up"} style={styles.link}>
-        Sign Up
-      </Link>
+                  <View style={homeStyles.featuredContent}>
+                    <Text style={homeStyles.featuredTitle} numberOfLines={2}>
+                      {featuredRecipe.title}
+                    </Text>
 
-      <Link href={"/sign-in"} style={styles.link}>
-        Sign In
-      </Link>
+                    <View style={homeStyles.featuredMeta}>
+                      <View style={homeStyles.metaItem}>
+                        <Ionicons name="time-outline" size={16} color={COLORS.white} />
+                        <Text style={homeStyles.metaText}>{featuredRecipe.cookTime}</Text>
+                      </View>
+                      <View style={homeStyles.metaItem}>
+                        <Ionicons name="people-outline" size={16} color={COLORS.white} />
+                        <Text style={homeStyles.metaText}>{featuredRecipe.servings}</Text>
+                      </View>
+                      {featuredRecipe.area && (
+                        <View style={homeStyles.metaItem}>
+                          <Ionicons name="location-outline" size={16} color={COLORS.white} />
+                          <Text style={homeStyles.metaText}>{featuredRecipe.area}</Text>
+                        </View>
+                      )}
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </TouchableOpacity>
+          </View>
+        )}
 
-      <SignOutButton />
+        {/* CATEGORY FILTER */}
+        {categories.length > 0 && (
+          <CategoryFilter
+            categories={categories}
+            selectedCategory={selectedCategory}
+            onSelectCategory={handleCategorySelect}
+          />
+        )}
+
+        {/* SELECTED CATEGORY RECIPE LIST */}
+        <View style={homeStyles.recipesSection}>
+          <View style={homeStyles.sectionHeader}>
+            <Text style={homeStyles.sectionTitle}>{selectedCategory}</Text>
+          </View>
+          <FlatList
+            data={recipes}
+            renderItem={({ item }) => <RecipeCard recipe={item} />}
+            keyExtractor={(item) => item.id.toString()}
+            numColumns={2}
+            columnWrapperStyle={homeStyles.row}
+            contentContainerStyle={homeStyles.recipesGrid}
+            scrollEnabled={false}
+            ListEmptyComponent={
+              <View style={homeStyles.emptyState}>
+                <Ionicons name="restaurant-outline" size={64} color={COLORS.textLight} />
+                <Text style={homeStyles.emptyTitle}>No recipes found</Text>
+                <Text style={homeStyles.emptyDescription}>Try a different category</Text>
+              </View>
+            }
+          />
+        </View>
+      </ScrollView>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 20,
-  },
-  link: {
-    textAlign: "center",
-    color: "blue",
-    textDecorationLine: "underline",
-    fontSize: 20,
-    fontStyle: "italic",
-  },
-  text: {
-    textAlign: "center",
-    color: "magenta",
-    fontSize: 32,
-  },
-  input: {
-    width: 200,
-    borderWidth: 1,
-    padding: 8,
-  },
-  image: {
-    height: 100,
-    width: 100,
-    borderRadius: 10,
-  }
-})

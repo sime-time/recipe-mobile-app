@@ -29,6 +29,7 @@ export const searchStyles = StyleSheet.create({
     elevation: 2,
   },
   searchIcon: {
+    padding: 2,
     marginRight: 12,
   },
   searchInput: {
@@ -37,7 +38,7 @@ export const searchStyles = StyleSheet.create({
     color: COLORS.text,
   },
   clearButton: {
-    padding: 4,
+    padding: 2,
   },
   quickFilters: {
     marginTop: 20,

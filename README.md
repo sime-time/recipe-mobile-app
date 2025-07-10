@@ -1,52 +1,48 @@
-# Welcome to your Expo app 👋
+<h1 align="center">🍽️ React Native Recipe App 🍽️</h1>
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Highlights:
 
-## Get started
+- 🔐 Signup, Login, and 6-Digit Email Verification with **Better Auth**
+- 🍳 Browse Featured Recipes & Filter by Categories
+- 🔍 Search Recipes and View Detailed Cooking Instructions
+- 🎥 Recipe Pages Include YouTube Video Tutorials
+- ❤️ Add Recipes to Favorites and Access Them from Favorites Tab
+- ⚡ Tech Stack: React Native + Expo / PostgreSQL + Hono + Cloudflare Workers
+- 🌈 Includes 8 Color Themes
+- 🆓 100% Free Tools — No Paid Services Required
 
-1. Install dependencies
+---
 
-   ```bash
-   npm install
-   ```
+## 🗝 .dev.vars Setup
 
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+### Backend (`/backend`)
 
 ```bash
-npm run reset-project
+BETTER_AUTH_SECRET="from better-auth docs"
+RESEND_API_KEY="from resend.com"
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## 🔑 .env Setup
 
-## Learn more
+### Mobile App (`/mobile`)
 
-To learn more about developing your project with Expo, look at the following resources:
+```bash
+EXPO_PUBLIC_API_URL="http://your-ip-address:8787"
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+---
 
-## Join the community
+## 🔧 Run the Backend
 
-Join our community of developers creating universal apps.
+```bash
+cd backend
+pnpm run dev
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
-# recipe-mobile-app
-# recipe-mobile-app
+## 📱 Run the Mobile App
+
+```bash
+cd mobile
+pnpm install
+pnpm dlx expo start
+```

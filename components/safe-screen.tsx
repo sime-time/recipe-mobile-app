@@ -1,7 +1,7 @@
 import { COLORS } from "@/constants/colors";
 import { PropsWithChildren } from "react";
-import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { View } from "react-native";
 
 export default function SafeScreen({ children }: PropsWithChildren) {
   const insets = useSafeAreaInsets();

@@ -18,20 +18,20 @@ export const authStyles = StyleSheet.create({
   },
   imageContainer: {
     height: height * 0.3,
-    marginBottom: 30,
+    marginBottom: 20,
     justifyContent: "center",
     alignItems: "center",
   },
   image: {
-    width: 320,
-    height: 320,
+    width: 300,
+    height: height * 0.3,
   },
   title: {
     fontSize: 28,
     fontWeight: "bold",
     color: COLORS.text,
     textAlign: "center",
-    marginBottom: 40,
+    marginBottom: 30,
   },
   subtitle: {
     fontSize: 16,

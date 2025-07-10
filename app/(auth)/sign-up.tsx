@@ -37,7 +37,7 @@ export default function SignUp() {
 
       if (signUpAttempt.error) {
         console.error(JSON.stringify(signUpAttempt, null, 2));
-        return Alert.alert("Error", "Sign-up failed. Please try again.");
+        return Alert.alert("Sign-up failed", signUpAttempt.error.message);
       }
 
       router.push(`/verify-email/${signUpAttempt.data.user.email}`)
